@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Grades</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      background: #f4f4f4;
+      overflow-x: hidden;
+    }
+    /* Sidebar */
+.sidebar {
+  width: 250px; /* Increased width */
+  height: 100vh;
+  background: #4682B4;
+  padding-top: 60px;
+  color: white;
+  position: fixed;
+  left: -250px; /* Adjusted for new width */
+  transition: left 0.3s ease-in-out;
+}
+    .sidebar.active {
+      left: 0;
+    }
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .sidebar a {
+      display: block;
+      text-decoration: none;
+      color: white;
+      padding: 10px 20px;
+      margin: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      transition: 0.3s;
+    }
+    .sidebar a:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .parent-container {
+  position: relative;
+}
+    /* Toggle Button */
+    .toggle-btn {
+  position: absolute;
+  left: -15px;
+  right: -50px;
+  size: -10px;
+  top: 15px;
+  background: #4682B4;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.3s;
+}
+    .toggle-btn:hover {
+      background: #315F85;
+    }
+    /* Main Content */
+    .main-content {
+      flex-grow: 1;
+      padding: 20px;
+      width: 100%;
+      transition: margin-left 0.3s ease-in-out;
+    }
+    .main-content.shifted {
+      margin-left: 200px;
+    }
+    /* Grades Section */
+    .dashboard {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 15px;
+    }
+    .student-list li {
+      background: #f2f2f2;
+      padding: 10px;
+      border-radius: 6px;
+      margin: 5px 0;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .student-list li:hover {
+      background: #ddd;
+    }
+    .grade-panel {
+      display: none;
+      margin-top: 20px;
+    }
+    input, button {
+      margin-top: 10px;
+      padding: 8px;
+      width: 100%;
+    }
+    button {
+      background: #4682B4;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #35638D;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>Teacher Panel</h2>
+    <a href="teacher.html">Home</a>
+    <a href="teacher_grades.html">Grades</a>
+    <a href="teacher_homework.html">Homework</a>
+  </div>
+
+  <!-- Toggle Button -->
+  <button class="toggle-btn" id="toggle-btn">☰ Menu</button>
+
+  <!-- Main Content -->
+  <div class="main-content" id="main-content">
+    <div class="dashboard">
+      <h2>Student Grades</h2>
+      <ul class="student-list" id="student-list">
+        <!-- Students will be loaded here -->
+      </ul>
+
+      <!-- Grade Input Panel -->
+      <div class="grade-panel" id="grade-panel">
+        <h3 id="selected-student"></h3>
+        <input type="number" id="grade-input" min="0" max="10" placeholder="Enter Grade (0-10)">
+        <input type="date" id="grade-date">
+        <button onclick="applyGrade()">Apply Grade</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("toggle-btn");
+    const mainContent = document.getElementById("main-content");
+    const studentList = document.getElementById("student-list");
+    const gradePanel = document.getElementById("grade-panel");
+    const selectedStudentLabel = document.getElementById("selected-student");
+    const gradeInput = document.getElementById("grade-input");
+    const gradeDate = document.getElementById("grade-date");
+
+    let students = JSON.parse(localStorage.getItem("students")) || [];
+    let selectedStudent = null;
+
+    // Toggle Sidebar
+    toggleBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("active");
+      mainContent.classList.toggle("shifted");
+    });
+
+    // Display Students List
+    function displayStudents() {
+      studentList.innerHTML = "";
+      if (students.length === 0) {
+        studentList.innerHTML = "<li>No registered students.</li>";
+      } else {
+        students.forEach((student, index) => {
+          const li = document.createElement("li");
+          li.textContent = student.username;
+          li.onclick = () => openGradePanel(index);
+          studentList.appendChild(li);
+        });
+      }
+    }
+
+    // Open Grade Panel
+    function openGradePanel(index) {
+      selectedStudent = students[index];
+      selectedStudentLabel.textContent = `Grades for ${selectedStudent.username}`;
+      gradePanel.style.display = "block";
+    }
+
+    // Apply Grade
+    function applyGrade() {
+      if (!selectedStudent) return;
+
+      const grade = gradeInput.value;
+      const date = gradeDate.value;
+      if (grade === "" || date === "") {
+        alert("Please enter a valid grade and date.");
+        return;
+      }
+
+      // Save the grade with timestamp
+      selectedStudent.grades = selectedStudent.grades || [];
+      selectedStudent.grades.push({ grade, date });
+
+      // Update student list in localStorage
+      localStorage.setItem("students", JSON.stringify(students));
+
+      // Clear input fields
+      gradeInput.value = "";
+      gradeDate.value = "";
+
+      alert(`Grade applied to ${selectedStudent.username}!`);
+    }
+
+    // Populate students on page load
+    displayStudents();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    body {
+      background: linear-gradient(135deg, #ffffff, #ffffff);
+      padding: 20px;
+      color: #333;
+    }
+    .dashboard {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    h2 { margin-bottom: 15px; }
+    ul { list-style: none; margin: 10px 0; padding: 0; }
+    li {
+      background: #f2f2f2;
+      margin: 5px 0;
+      padding: 8px;
+      border-radius: 6px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #4682B4;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: 0.3s;
+    }
+    button:hover { background: #35638D; }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h2>Student Dashboard</h2>
+    <h3>Grades</h3>
+    <ul id="grades-list">
+      <!-- Grades list populated via JavaScript -->
+    </ul>
+
+    <!-- Form to input grade for the student -->
+    <h3>Update Grade</h3>
+    <input type="number" id="new-grade" placeholder="Enter grade (out of 10)" min="0" max="10" />
+    <button onclick="submitGrade()">Submit Grade</button>
+
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    const students = JSON.parse(localStorage.getItem("students")) || [];
+    const username = "student1"; // Replace with actual student username or login system
+
+    function displayGrades() {
+      const student = students.find(s => s.username === username);
+      const gradesList = document.getElementById("grades-list");
+
+      if (student && student.grades && student.grades.length > 0) {
+        student.grades.forEach(grade => {
+          const li = document.createElement("li");
+          li.textContent = `${grade.grade}/10 - Applied on: ${grade.timestamp}`;
+          gradesList.appendChild(li);
+        });
+      } else {
+        gradesList.innerHTML = "<li>No grades yet.</li>";
+      }
+    }
+
+    // Function to update the grade for the student
+    function updateGrade(newGrade) {
+      const student = students.find(s => s.username === username);
+      if (student) {
+        const timestamp = new Date().toLocaleString();
+        // Adding the new grade to the student's grade list
+        student.grades.push({ grade: newGrade, timestamp: timestamp });
+        // Save updated students array to localStorage
+        localStorage.setItem("students", JSON.stringify(students));
+        alert("Grade updated successfully!");
+        displayGrades(); // Re-display the updated grades
+      }
+    }
+
+    // Function called when the grade is submitted
+    function submitGrade() {
+      const newGrade = document.getElementById("new-grade").value;
+      if (newGrade >= 0 && newGrade <= 10) {
+        updateGrade(newGrade);
+      } else {
+        alert("Please enter a valid grade between 0 and 10.");
+      }
+    }
+
+    function logout() {
+      window.location.href = "index.html";
+    }
+
+    // Display grades on page load
+    displayGrades();
+  </script>
+</body>
+</html>
